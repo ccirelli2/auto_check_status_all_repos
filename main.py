@@ -1,113 +1,98 @@
 #!/usr/bin/env python3
 # Import Pyton Libraries ---------------------------------------------------
-import os
+from os import path, getenv, listdir
 import subprocess
+import logging
+import argparse
 
-# Logging ------------------------------------------------------------------
-q0 = input('''
-You have executed a function that will check the status of every git repository in this directory.
-Do you want to proceed (acceptable responses => 'Yes', 'yes')?  ''')
+SCRIPT_NAME = path.basename(__file__)
 
-# Set start directory
-start_dir = input('Please provide the start directory for the program => ')
-os.chdir(start_dir)
+log_level = getattr(logging, getenv('LOGLEVEL', 'NOTSET').upper(), logging.WARNING)
+log_level = log_level if log_level else logging.WARNING
+logging.basicConfig(level=log_level)
 
-# If the user wants to proceed:
-if q0 in ('Yes', 'yes'):
+COMMIT_MSG = 'quick commit'
+ALL_CLEAR_MSG = 'nothing to commit, working tree clean'
 
-    # List Obj For Paths2 Git Repositories
-    git_repos = []
 
-    def GetAllGitReposCwd(cwd_=None):
-        ' Note:  Must pass None to function'
-        # If iter == 1
-        if cwd_ is None:
-            # Return cwd
-            GetAllGitReposCwd(os.getcwd())
-        # If iter > 1
+def NOOP(**_):
+    pass
+
+
+def commit_changes(start_directory, commit_msg=None):
+    git_commands = []
+    logging.debug("Start dir '%s'. Msg '%s'.", start_directory, commit_msg)
+    for directory in [d for d in listdir(start_directory) if path.isdir(path.join(start_directory, d, '.git'))]:
+        logging.debug("Found a git dir '%s'", directory)
+        git_dir = path.join(start_directory, directory, '.git')
+        base_cmd = ['git', '--git-dir', git_dir]
+
+        cmd = []
+        cmd.extend(base_cmd)
+        cmd.append('status')
+        git_status = subprocess.check_output(cmd)
+
+        if ALL_CLEAR_MSG not in str(git_status):
+            if not commit_msg:
+                cmd_commit_msg = input(f"Please enter a commit message for '{directory}': ")
+                cmd_commit_msg = cmd_commit_msg if cmd_commit_msg else COMMIT_MSG
+            else:
+                cmd_commit_msg = commit_msg
+
+            cmd = []
+            cmd.extend(base_cmd)
+            cmd.extend(['add', '--all'])
+            git_commands.append(cmd)
+
+            cmd = []
+            cmd.extend(base_cmd)
+            cmd.extend(['commit', '-m', cmd_commit_msg])
+            git_commands.append(cmd)
+
+    return git_commands
+
+
+def command_handler(args):
+    git_commands = commit_changes(getattr(args, 'dir', '.'), getattr(args, 'msg', None))
+
+    for cmd in git_commands:
+        if args.dry:
+            print(' '.join(cmd))
+            print('No commands have been executed during this process.')
         else:
-            # Expand CWD
-            candidates = os.listdir(cwd_)
+            subprocess.check_output(cmd)
 
-            # Check to see if cwd is a repo
-            if '.git' in candidates:
-                git_repos.append(cwd_)
 
-            # If not a git repository, check subdirectories
-            else:
-                # For each possible directory
-                for c in candidates:
-                    # create the full path as cwd + possible dir
-                    fullpath = cwd_ + '/' + c
-                    # Check if fullpath is a directory
-                    if os.path.isdir(fullpath) is True:
-                        # Return as cwd and recursively check if git repo
-                        GetAllGitReposCwd(fullpath)
+def is_valid_dir(directory):
+    if path.isdir(directory):
+        return directory
+    raise argparse.ArgumentTypeError('Not a valid directory.')
 
-    # Call Function & Build List of Paths 2 Git Repos
-    GetAllGitReposCwd()
 
-    # Logging
-    print('\n The following git repositories have been found => {}'.format(git_repos))
+def main():
+    parser = argparse.ArgumentParser()
+    parser.set_defaults(func=NOOP)
+    subparsers = parser.add_subparsers(
+        title='Commands',
+        description='',
+        help=''
+    )
 
-    # Step 2:  Check Status of All Git Repos _________________________________
+    parser_manual_commit = subparsers.add_parser('commit', aliases=['c'], description='Commit all changes, manually filling in commit messages.')
+    parser_manual_commit.add_argument('-d', '--dir', type=is_valid_dir, default='.', help='Directory to start looking for git repos.')
+    parser_manual_commit.add_argument('-m', '--msg', default=None, help='Provide a commit message.')
+    parser_manual_commit.add_argument('-y', '--dry', action='store_true', help='Provide a commit message.')
+    parser_manual_commit.set_defaults(func=command_handler)
 
-    # Check if list is empty
-    if not git_repos:
-        print('No git repositories found in cwd directory tree.  Ending process')
+    parser_auto_commit = subparsers.add_parser('auto-commit', aliases=['a'], description=f'Commit all changes using a common comit message. This will default to "{COMMIT_MSG}')
+    parser_auto_commit.add_argument('-d', '--dir', type=is_valid_dir, default='.', help='Directory to start looking for git repos. Be careful of shell expansion. Wrap relative paths in single quotes.')
+    parser_auto_commit.add_argument('-m', '--msg', default=COMMIT_MSG, help='Provide a commit message.')
+    parser_auto_commit.add_argument('-y', '--dry', action='store_true', help='Provide a commit message.')
+    parser_auto_commit.set_defaults(func=command_handler)
 
-    # Otherwise, proceed
-    else:
-        # Iterate List of Repository Paths
-        for repo in git_repos:
-            # Change CWD to Repo Path
-            os.chdir(repo)
-            print('\n***************************************************')
+    args = parser.parse_args()
+    args.func(args)
 
-            # Obj to catch git status msg
-            git_status_msg = ''
-            msg = "modified"
 
-            # Redirect Stdout
-            cmd = ['git', 'status']
-            git_output = subprocess.check_output(cmd)
-
-            # Check if Repository Is Not up-to-date
-            if msg in str(git_output.decode('utf-8')):
-
-                # Logging
-                print('Repository => {} is not up to date.  Returning git status\n'.format(repo))
-                print(git_output.decode('utf-8'))
-
-                # Ask user If he/she wants to stage changes
-                print('\n')
-                q1 = input("Do you want to stage changes ('yes', 'no') ")
-                if q1 in ('Yes', 'yes'):
-                    os.system('git add .gitignore')
-                    os.system('git add *')
-
-                    # Ask user if he/she wants to add a commit message
-                    q2 = input('Do you want to add a commit message? ')
-                    if q2 in ('Yes', 'yes'):
-                        a1 = input('Input message here =>  ')
-                        os.system('commit -m {}'.format(a1))
-                    else:
-                        os.system('commit -m -q')
-
-                    # Execute Git Push Command
-                    os.system('git push')
-
-                    # Execute Clear Terminal Command
-                    os.system('clear')
-
-                # Because the user did not want to commit changes, clear terminal
-                else:
-                    # Clear Terminal
-                    os.system('clear')
-
-            # If msg was not found in the git status report, then repo is up to date.
-            else:
-                print('Repository => {} is up to date.  Moving on to next repo'.format(repo.split('/')[-1]))
-
-print('******************************************************')
-print('Program finished running.')
+if __name__ == '__main__':
+    main()
