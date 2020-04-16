@@ -1,14 +1,3 @@
-# DOCUMENTATION ____________________________________________________________
-''' Desc:   I got tired of searching through each one of my git repos to ensure
-            that they were up to date with the master.  I also recently got burnt
-            when my os crashed and I lost some important work. Therefore, I wanted
-            to write a script that would iterate through all of my git repositories
-            and report back on their status.  In addition, and in the event that they
-            were out of date, to update each repository in turn. 
-'''
-
-
-
 # Import Pyton Libraries ---------------------------------------------------
 import os
 import subprocess
@@ -103,9 +92,9 @@ if q0 == 'Yes' or q0 == 'yes':
                     os.system('git add *')
                     
                     # Ask user if he/she wants to add a commit message
-                    q2 = raw_input('Do you want to add a commit message? ')
+                    q2 = input('Do you want to add a commit message? ')
                     if q2 == 'yes' or q2 == 'Yes':
-                        a1 = raw_input('Input message here =>  ')
+                        a1 = input('Input message here =>  ')
                         os.system('commit -m {}'.format(a1))
                     else:
                         os.system('commit -m -q')
