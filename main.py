@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Import Pyton Libraries ---------------------------------------------------
 import os
 import subprocess
@@ -8,7 +9,7 @@ You have executed a function that will check the status of every git repository 
 Do you want to proceed (acceptable responses => 'Yes', 'yes')?  ''')
 
 # Set start directory
-start_dir  = input('Please provide the start directory for the program => ')
+start_dir = input('Please provide the start directory for the program => ')
 os.chdir(start_dir)
 
 # If the user wants to proceed:
@@ -46,11 +47,8 @@ if q0 in ('Yes', 'yes'):
     # Call Function & Build List of Paths 2 Git Repos
     GetAllGitReposCwd()
 
-
     # Logging
     print('\n The following git repositories have been found => {}'.format(git_repos))
-
-
 
     # Step 2:  Check Status of All Git Repos _________________________________
 
@@ -113,4 +111,3 @@ if q0 in ('Yes', 'yes'):
 
 print('******************************************************')
 print('Program finished running.')
-
