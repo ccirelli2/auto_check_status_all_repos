@@ -5,16 +5,14 @@ import subprocess
 # Logging ------------------------------------------------------------------
 q0 = input('''
 You have executed a function that will check the status of every git repository in this directory.
-Do you want to proceed?  ''')
+Do you want to proceed (acceptable responses => 'Yes', 'yes')?  ''')
+
+# Set start directory
+start_dir  = input('Please provide the start directory for the program => ')
+os.chdir(start_dir)
 
 # If the user wants to proceed:
-if q0 == ('Yes', 'yes'):
-
-    # Define Directories -------------------------------------------------------
-    cwd = os.getcwd()
-
-
-    # Step 1:  Get List of All Git Repositories In CWD Tree ____________________
+if q0 in ('Yes', 'yes'):
 
     # List Obj For Paths2 Git Repositories
     git_repos = []
@@ -28,18 +26,18 @@ if q0 == ('Yes', 'yes'):
         # If iter > 1
         else:
             # Expand CWD
-            candidates = os.listdir(cwd)
+            candidates = os.listdir(cwd_)
 
             # Check to see if cwd is a repo
             if '.git' in candidates:
-                git_repos.append(cwd)
+                git_repos.append(cwd_)
 
             # If not a git repository, check subdirectories
             else:
                 # For each possible directory
                 for c in candidates:
                     # create the full path as cwd + possible dir
-                    fullpath = cwd + '/' + c
+                    fullpath = cwd_ + '/' + c
                     # Check if fullpath is a directory
                     if os.path.isdir(fullpath) is True:
                         # Return as cwd and recursively check if git repo
@@ -70,24 +68,23 @@ if q0 == ('Yes', 'yes'):
 
             # Obj to catch git status msg
             git_status_msg = ''
-            msg = "branch is up to date"
+            msg = "modified"
 
             # Redirect Stdout
             cmd = ['git', 'status']
             git_output = subprocess.check_output(cmd)
 
             # Check if Repository Is Not up-to-date
-            if msg not in str(git_output.decode('utf-8')):
+            if msg in str(git_output.decode('utf-8')):
 
                 # Logging
-                print('Repository => {} is not up to date.  Returning git status'.format(repo))
-                print('\n', git_status_msg)
-
+                print('Repository => {} is not up to date.  Returning git status\n'.format(repo))
+                print(git_output.decode('utf-8'))
 
                 # Ask user If he/she wants to stage changes
                 print('\n')
-                q1 = input('Do you want to stage changes? ')
-                if q1 in ('Yes','yes'):
+                q1 = input("Do you want to stage changes ('yes', 'no') ")
+                if q1 in ('Yes', 'yes'):
                     os.system('git add .gitignore')
                     os.system('git add *')
 
@@ -112,7 +109,8 @@ if q0 == ('Yes', 'yes'):
 
             # If msg was not found in the git status report, then repo is up to date.
             else:
-                print('Repository is up to date.  Moving on to next repo')
+                print('Repository => {} is up to date.  Moving on to next repo'.format(repo.split('/')[-1]))
 
-
+print('******************************************************')
+print('Program finished running.')
 
