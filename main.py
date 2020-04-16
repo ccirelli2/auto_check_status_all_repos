@@ -81,13 +81,13 @@ def main():
     parser_manual_commit = subparsers.add_parser('commit', aliases=['c'], description='Commit all changes, manually filling in commit messages.')
     parser_manual_commit.add_argument('-d', '--dir', type=is_valid_dir, default='.', help='Directory to start looking for git repos.')
     parser_manual_commit.add_argument('-m', '--msg', default=None, help='Provide a commit message.')
-    parser_manual_commit.add_argument('-y', '--dry', action='store_true', help='Provide a commit message.')
+    parser_manual_commit.add_argument('-y', '--dry', action='store_true', help='Print commands but do not run.')
     parser_manual_commit.set_defaults(func=command_handler)
 
     parser_auto_commit = subparsers.add_parser('auto-commit', aliases=['a'], description=f'Commit all changes using a common comit message. This will default to "{COMMIT_MSG}')
     parser_auto_commit.add_argument('-d', '--dir', type=is_valid_dir, default='.', help='Directory to start looking for git repos. Be careful of shell expansion. Wrap relative paths in single quotes.')
     parser_auto_commit.add_argument('-m', '--msg', default=COMMIT_MSG, help='Provide a commit message.')
-    parser_auto_commit.add_argument('-y', '--dry', action='store_true', help='Provide a commit message.')
+    parser_auto_commit.add_argument('-y', '--dry', action='store_true', help='Print commands but do not run.')
     parser_auto_commit.set_defaults(func=command_handler)
 
     args = parser.parse_args()
