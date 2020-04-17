@@ -24,8 +24,8 @@ def commit_changes(start_directory, commit_msg=None):
     logging.debug("Start dir '%s'. Msg '%s'.", start_directory, commit_msg)
     for directory in [d for d in listdir(start_directory) if path.isdir(path.join(start_directory, d, '.git'))]:
         logging.debug("Found a git dir '%s'", directory)
-        git_dir = path.join(start_directory, directory, '.git')
-        base_cmd = ['git', '--git-dir', git_dir]
+        git_dir = path.join(start_directory, directory)
+        base_cmd = ['git', '-C', git_dir]
 
         cmd = []
         cmd.extend(base_cmd)
