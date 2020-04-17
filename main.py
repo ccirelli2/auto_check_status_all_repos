@@ -58,9 +58,11 @@ def command_handler(args):
     for cmd in git_commands:
         if args.dry:
             print(' '.join(cmd))
-            print('No commands have been executed during this process.')
         else:
             subprocess.check_output(cmd)
+
+    if args.dry:
+        print('No commands have been executed during this process.')
 
 
 def is_valid_dir(directory):
