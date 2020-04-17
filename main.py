@@ -46,7 +46,7 @@ def commit_changes(start_directory, commit_msg=None):
 
             cmd = []
             cmd.extend(base_cmd)
-            cmd.extend(['commit', '-m', cmd_commit_msg])
+            cmd.extend(['commit', '-m', f'\'{cmd_commit_msg}\''])
             git_commands.append(cmd)
 
     return git_commands
