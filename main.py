@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Import Pyton Libraries ---------------------------------------------------
 from os import path, getenv, listdir
 import subprocess
 import logging
