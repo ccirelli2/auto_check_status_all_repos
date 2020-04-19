@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from os import path, getenv, listdir
+from typing import Any
 import subprocess
 import logging
 import argparse
@@ -18,7 +19,7 @@ def NOOP(**_):
     pass
 
 
-def commit_changes(start_directory, commit_msg=None):
+def commit_changes(start_directory: str, commit_msg: str = None) -> list:
     git_commands = []
     logging.debug("Start dir '%s'. Msg '%s'.", start_directory, commit_msg)
     for directory in [d for d in listdir(start_directory) if path.isdir(path.join(start_directory, d, '.git'))]:
@@ -51,7 +52,7 @@ def commit_changes(start_directory, commit_msg=None):
     return git_commands
 
 
-def command_handler(args):
+def command_handler(args: Any) -> None:
     git_commands = commit_changes(getattr(args, 'dir', '.'), getattr(args, 'msg', None))
 
     for cmd in git_commands:
@@ -64,7 +65,7 @@ def command_handler(args):
         print('No commands have been executed during this process.')
 
 
-def is_valid_dir(directory):
+def is_valid_dir(directory: str) -> str:
     if path.isdir(directory):
         return directory
     raise argparse.ArgumentTypeError('Not a valid directory.')
